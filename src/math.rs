@@ -1,11 +1,11 @@
 use std::f64::consts::PI;
 
-fn sin(angle: f64) -> f64 {
+pub fn sin(angle: f64) -> f64 {
     libm::sin(angle)
 }
 
 fn triangle(angle: f64) -> f64 {
-    libm::asin(libm::sin(angle)) / (PI / 2.0)
+    (libm::asin(libm::sin(angle)) / PI) * 2.0
 }
 
 fn square(angle: f64) -> f64 {
