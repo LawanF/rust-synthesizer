@@ -58,18 +58,18 @@ where
 
     let err_fn = |err| eprintln!("Failed to build output stream: {err}");
 
+    let mut tick: f64 = 0.0; // To keep track of time.
+
     let data_callback = move |buffer: &mut [SampleType], _: &cpal::OutputCallbackInfo| {
-        let mut cur_tick: f64 = 0.0;
 
         for frame in buffer.chunks_mut(channels) {
-            let value = sin(2.0 * PI * (cur_tick / sample_rate) * 220.0);
-            println!("{value}");
+            let value = sin(2.0 * PI * (tick / sample_rate) * 440.0);
             
             for sample in frame.iter_mut() {
                 *sample = Sample::from_sample(value);
             }
 
-            cur_tick += 1.0;
+            tick += 1.0;
         }
     };
 
@@ -77,26 +77,3 @@ where
 
     Ok(stream)
 }
-
-fn generate_sound<SampleType>(
-    buffer: &mut [SampleType],
-    channels: usize,
-    sample_rate: f64,
-) 
-where
-    SampleType: Sample + FromSample<f64>,
-{
-    let mut cur_tick: f64 = 0.0;
-
-        for frame in buffer.chunks_mut(channels) {
-            let value = sin(2.0 * PI * (cur_tick / sample_rate) * 440.0) * std::f64::MAX;
-
-            for sample in frame.iter_mut() {
-                *sample = Sample::from_sample(value);
-            }
-
-            cur_tick += 1.0;
-        }
-}
-
-
