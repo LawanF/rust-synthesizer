@@ -1,7 +1,6 @@
 use cpal::{traits::{DeviceTrait, HostTrait}, Device, FromSample, Sample, SizedSample, StreamConfig, SupportedStreamConfig};
 
 fn main() {
-
     let host = cpal::default_host();
 
     let device = host.default_output_device().expect("No output device available.");
@@ -21,7 +20,6 @@ fn initialise_stream(
     device: Device, 
     supported_config: SupportedStreamConfig,
 ) -> Result<cpal::Stream, anyhow::Error> {
-
     match supported_config.sample_format() {
         cpal::SampleFormat::I8 => make_stream::<i8>(&device, &supported_config.into()),
         cpal::SampleFormat::I16 => make_stream::<i16>(&device, &supported_config.into()),
@@ -51,7 +49,6 @@ fn make_stream<SampleType>(
 where
     SampleType: SizedSample + FromSample<f64>,
 {
-
     // Get information from config.
     let channels = config.channels as usize;
     let sample_rate = config.sample_rate.0 as f64; // f64 for compatibility with amplitude calculation.
@@ -61,7 +58,6 @@ where
     let mut tick: f64 = 0.0; // To keep track of time.
 
     let data_callback = move |buffer: &mut [SampleType], _: &cpal::OutputCallbackInfo| {
-
         for frame in buffer.chunks_mut(channels) {
             let value = sin(2.0 * PI * (tick / sample_rate) * 440.0);
             
