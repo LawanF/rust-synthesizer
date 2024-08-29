@@ -28,7 +28,7 @@ fn model(app: &App) -> Model {
 fn view(_app: &App, _model: &Model, _frame: Frame) {
 }
 
-fn update(_app: &App, model: &mut Model, _update: Update) {
+fn update(_app: &App, _model: &mut Model, _update: Update) {
 }
 
 fn key_pressed(_app: &App, _model: &mut Model, key: Key) {
