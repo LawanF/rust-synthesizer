@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 libm = "0.2.8"
+midir = "0.10"
+anyhow = "1.0"
