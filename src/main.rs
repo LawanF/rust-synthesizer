@@ -1,3 +1,6 @@
+mod cpal;
+mod math;
+
 use nannou::prelude::*;
 
 const WINDOW_WIDTH: u32 = 500;

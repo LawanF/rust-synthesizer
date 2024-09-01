@@ -2020,6 +2020,8 @@ name = "rust-synthesizer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "cpal",
+ "anyhow",
  "libm",
  "nannou",
 ]
