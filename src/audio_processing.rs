@@ -4,9 +4,10 @@ use nannou_audio;
 use nannou_audio::Buffer;
 use std::f64::consts::PI;
 
+use crate::note::Note;
 use crate::oscillator::sin;
 
-const NUMBER_OF_NOTES: usize = 13;
+const NUMBER_OF_NOTES: usize = 128;
 const DEFAULT_BASE_FREQUENCY: f64 = 440.0;
 const DEFAULT_VOLUME: f64 = 0.5;
 
@@ -14,7 +15,7 @@ pub struct AudioModel {
     tick: f64,
     base_frequency: f64,
     volume: f64,
-    notes: Vec<bool>,
+    notes: Vec<Note>,
 }
 
 impl AudioModel {
@@ -23,21 +24,28 @@ impl AudioModel {
             tick: 0.0,
             base_frequency: DEFAULT_BASE_FREQUENCY,
             volume: DEFAULT_VOLUME,
-            notes: vec![false; NUMBER_OF_NOTES],
+            notes: vec![Note::new(); NUMBER_OF_NOTES],
         }
     }
 
-    pub fn activate_note(&mut self, index: usize) -> Result<(), Error> {
+    pub fn press_note(&mut self, index: usize) -> Result<(), Error> {
         AudioModel::check_note_index(index)?;
 
-        self.notes[index] = true;
+        self.notes[index].press(self.tick);
+        Ok(())
+    }
+
+    pub fn release_note(&mut self, index: usize) -> Result<(), Error> {
+        AudioModel::check_note_index(index)?;
+
+        self.notes[index].release(self.tick);
         Ok(())
     }
 
     pub fn deactivate_note(&mut self, index: usize) -> Result<(), Error> {
         AudioModel::check_note_index(index)?;
 
-        self.notes[index] = false;
+        self.notes[index].deactivate();
         Ok(())
     }
 
@@ -55,7 +63,7 @@ pub fn audio(audio_model: &mut AudioModel, buffer: &mut Buffer) {
     let sample_rate = buffer.sample_rate() as f64;
     
     for (index, &note) in audio_model.notes.iter().enumerate() {
-        if note {
+        if note.get_active() {
             // One frame represents one point in time. 
             // The number of elements in a frame depends on the number of channels.
             // For example, stereo audio has two channels for left and right respectively.

@@ -4,6 +4,7 @@ use nannou_audio;
 mod audio_processing;
 mod oscillator;
 mod midi;
+mod note;
 
 use audio_processing::AudioModel;
 use audio_processing::audio;
@@ -57,7 +58,7 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
 
     if key == Key::A {
         model.stream.send(move |audio_model| {
-            audio_model.activate_note(0).unwrap();
+            audio_model.press_note(0).unwrap();
         }).unwrap();
     };
 }
@@ -67,6 +68,7 @@ fn key_released(_app: &App, model: &mut Model, key: Key) {
 
     if key == Key::A {
         model.stream.send(move |audio_model| {
+            audio_model.release_note(0).unwrap();
             audio_model.deactivate_note(0).unwrap();
         }).unwrap();
     };
