@@ -4,7 +4,6 @@
     velocity (a value which monitors how fast the key is pressed),
     and when the tick when the note was pressed and released.
 */
-
 #[derive(Clone, Copy)]
 pub struct Note {
     pressed: bool,

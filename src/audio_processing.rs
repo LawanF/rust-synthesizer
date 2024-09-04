@@ -5,29 +5,34 @@ use nannou_audio::Buffer;
 use std::f64::consts::PI;
 
 use crate::note::Note;
-use crate::oscillator::sin;
+use crate::oscillator::{sin, triangle, square, sawtooth};
+use crate::keyboard::A4_MIDI_VALUE;
 
-const NUMBER_OF_NOTES: usize = 128;
-const DEFAULT_BASE_FREQUENCY: f64 = 440.0;
-const DEFAULT_VOLUME: f64 = 0.5;
+const NUMBER_OF_MIDI_NOTES: usize = 128;
+const STANDARD_A4_FREQUENCY: f64 = 440.0;
+const DEFAULT_VOLUME: f64 = 0.1;
 
+/*
+    Stores program state information relevant to audio generation.
+*/
 pub struct AudioModel {
     tick: f64,
-    base_frequency: f64,
+    a4_frequency: f64,
     volume: f64,
-    notes: Vec<Note>,
+    notes: [Note; NUMBER_OF_MIDI_NOTES],
 }
 
 impl AudioModel {
     pub fn new() -> Self {
         AudioModel {
             tick: 0.0,
-            base_frequency: DEFAULT_BASE_FREQUENCY,
+            a4_frequency: STANDARD_A4_FREQUENCY,
             volume: DEFAULT_VOLUME,
-            notes: vec![Note::new(); NUMBER_OF_NOTES],
+            notes: [Note::new(); NUMBER_OF_MIDI_NOTES],
         }
     }
 
+    // === METHODS FOR INTERACTING WITH NOTES ===
     pub fn press_note(&mut self, index: usize) -> Result<(), Error> {
         AudioModel::check_note_index(index)?;
 
@@ -50,32 +55,37 @@ impl AudioModel {
     }
 
     fn check_note_index(index: usize) -> Result<(), Error> {
-        if index >= NUMBER_OF_NOTES {
+        if index >= NUMBER_OF_MIDI_NOTES {
             return Err(Error::msg("Note index out of bounds."))
         }
         Ok(())
     }
 }
 
-// A function that renders the given `Audio` to the given `Buffer`.
-// In this case we play a simple sine wave at the audio's current frequency in `hz`.
+/* 
+    Audio rendering function. 
+    Places the calculated PCM values inside a buffer to be then sent to playback.
+*/
 pub fn audio(audio_model: &mut AudioModel, buffer: &mut Buffer) {
-    let sample_rate = buffer.sample_rate() as f64;
+    let sample_rate = buffer.sample_rate() as f64; 
     
-    for (index, &note) in audio_model.notes.iter().enumerate() {
-        if note.get_active() {
-            // One frame represents one point in time. 
-            // The number of elements in a frame depends on the number of channels.
-            // For example, stereo audio has two channels for left and right respectively.
-            for frame in buffer.frames_mut() {
-                let amplitude = sin(2.0 * PI * (audio_model.tick / sample_rate) * (2.0.pow(index as f64 / 12.0) * audio_model.base_frequency)) * audio_model.volume;
-                println!("amp: {amplitude}");
-                for channel in frame {
-                    *channel = amplitude as f32;
-                }
-                println!("tick: {}", audio_model.tick);
-                audio_model.tick += 1.0;
+    // One frame represents one point in time. 
+    // The number of elements in a frame depends on the number of channels.
+    // For example, stereo audio has two channels for left and right respectively.
+    for frame in buffer.frames_mut() {
+        let mut amplitude: f64 = 0.0;
+
+        // Evaluates which notes are activated and calculates their frequency.
+        // DOES THIS NEED TO REPEAT FOR EVERY FRAME? WHY NOT JUST ADD THE INDICES TO A VECTOR TO AVOID REPEAT CALCULATIONS? BENCHMARK PLS.
+        for (index, &note) in audio_model.notes.iter().enumerate() {
+            if note.get_active() {
+                amplitude += triangle(2.0 * PI * (audio_model.tick / sample_rate) * (2.0.pow((index as i16 - A4_MIDI_VALUE) as f64 / 12.0) * audio_model.a4_frequency)) * audio_model.volume;
             }
         }
+
+        for channel in frame {
+            *channel = amplitude as f32;
+        }
+        audio_model.tick += 1.0;
     }
 }
