@@ -1,9 +1,12 @@
+use keyboard::parse_key_as_note_input;
 use nannou::prelude::*;
 use nannou_audio;
 
 mod audio_processing;
-mod oscillator;
+mod keyboard;
 mod midi;
+mod note;
+mod oscillator;
 
 use audio_processing::AudioModel;
 use audio_processing::audio;
@@ -55,19 +58,28 @@ fn update(_app: &App, _model: &mut Model, _update: Update) {
 fn key_pressed(_app: &App, model: &mut Model, key: Key) {
     println!("Pressed: {:?}", key);
 
-    if key == Key::A {
-        model.stream.send(move |audio_model| {
-            audio_model.activate_note(0).unwrap();
-        }).unwrap();
-    };
+    match parse_key_as_note_input(key) {
+        Some(index) => {
+            model.stream.send(move |audio_model| {
+                audio_model.press_note(index).unwrap();
+            }).unwrap();
+            return
+        },
+        None => println!("teehee!"),
+    }
 }
 
 fn key_released(_app: &App, model: &mut Model, key: Key) {
     println!("Released: {:?}", key);
 
-    if key == Key::A {
-        model.stream.send(move |audio_model| {
-            audio_model.deactivate_note(0).unwrap();
-        }).unwrap();
-    };
+    match parse_key_as_note_input(key) {
+        Some(index) => {
+            model.stream.send(move |audio_model| {
+                audio_model.release_note(index).unwrap();
+                audio_model.deactivate_note(index).unwrap();
+            }).unwrap();
+        return
+    },
+        None => println!("teehee!"),
+    }
 }
