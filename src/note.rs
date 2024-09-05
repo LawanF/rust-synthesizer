@@ -25,9 +25,12 @@ impl Note {
     }
 
     pub fn press(&mut self, tick: f64) {
-        self.pressed = true;
-        self.active = true;
-        self.tick_pressed = tick;
+        // To avoid repeat presses as a result of holding a key.
+        if !self.pressed {
+            self.pressed = true;
+            self.active = true;
+            self.tick_pressed = tick;
+        }
     }
 
     pub fn release(&mut self, tick: f64) {

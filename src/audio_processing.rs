@@ -1,9 +1,10 @@
 use anyhow::Error;
-use nannou::{frame, prelude::*};
+use nannou::prelude::*;
 use nannou_audio;
 use nannou_audio::Buffer;
 use std::f64::consts::PI;
 
+use crate::envelope::Envelope;
 use crate::note::Note;
 use crate::oscillator::{sin, triangle, square, sawtooth};
 use crate::keyboard::A4_MIDI_VALUE;
@@ -20,6 +21,7 @@ pub struct AudioModel {
     a4_frequency: f64,
     volume: f64,
     notes: [Note; NUMBER_OF_MIDI_NOTES],
+    envelope: Envelope,
 }
 
 impl AudioModel {
@@ -29,6 +31,7 @@ impl AudioModel {
             a4_frequency: STANDARD_A4_FREQUENCY,
             volume: DEFAULT_VOLUME,
             notes: [Note::new(); NUMBER_OF_MIDI_NOTES],
+            envelope: Envelope::new(),
         }
     }
 
@@ -56,7 +59,7 @@ impl AudioModel {
 
     fn check_note_index(index: usize) -> Result<(), Error> {
         if index >= NUMBER_OF_MIDI_NOTES {
-            return Err(Error::msg("Note index out of bounds."))
+            return Err(Error::msg("Note index out of bounds."));
         }
         Ok(())
     }
@@ -77,9 +80,9 @@ pub fn audio(audio_model: &mut AudioModel, buffer: &mut Buffer) {
 
         // Evaluates which notes are activated and calculates their frequency.
         // DOES THIS NEED TO REPEAT FOR EVERY FRAME? WHY NOT JUST ADD THE INDICES TO A VECTOR TO AVOID REPEAT CALCULATIONS? BENCHMARK PLS.
-        for (index, &note) in audio_model.notes.iter().enumerate() {
+        for (index, note) in audio_model.notes.iter_mut().enumerate() {
             if note.get_active() {
-                amplitude += triangle(2.0 * PI * (audio_model.tick / sample_rate) * (2.0.pow((index as i16 - A4_MIDI_VALUE) as f64 / 12.0) * audio_model.a4_frequency)) * audio_model.volume;
+                amplitude += triangle(2.0 * PI * (audio_model.tick / sample_rate) * (2.0.pow((index as i16 - A4_MIDI_VALUE) as f64 / 12.0) * audio_model.a4_frequency)) * audio_model.volume * audio_model.envelope.get_amplitude_of_note(note, audio_model.tick, sample_rate);
             }
         }
 
