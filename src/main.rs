@@ -3,6 +3,7 @@ use nannou::prelude::*;
 use nannou_audio;
 
 mod audio_processing;
+mod envelope;
 mod keyboard;
 mod midi;
 mod note;
@@ -63,7 +64,7 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
             model.stream.send(move |audio_model| {
                 audio_model.press_note(index).unwrap();
             }).unwrap();
-            return
+            return;
         },
         None => println!("teehee!"),
     }
@@ -76,10 +77,9 @@ fn key_released(_app: &App, model: &mut Model, key: Key) {
         Some(index) => {
             model.stream.send(move |audio_model| {
                 audio_model.release_note(index).unwrap();
-                audio_model.deactivate_note(index).unwrap();
             }).unwrap();
-        return
-    },
+            return;
+        },
         None => println!("teehee!"),
     }
 }
