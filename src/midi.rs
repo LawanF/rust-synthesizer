@@ -1,18 +1,21 @@
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{Receiver, Sender};
 
 use anyhow::Error;
 use midir::{Ignore, MidiInput, MidiInputConnection};
 
 pub const LENGTH_OF_MESSAGE_ARRAY: usize = 3;
-pub const MIDI_PRESS_VALUE: u8 = 144;
-pub const MIDI_RELEASE_VALUE: u8 = 128;
+pub const MIDI_ON_VALUE: u8 = 144;
+pub const MIDI_OFF_VALUE: u8 = 128;
 pub const MIDI_BYTE_RATE: f64 = 3125.0;
+
+pub type MidiReceiver = Receiver<[u8; 3]>;
+pub type MidiSender = Sender<[u8; 3]>;
 
 /*
     Opens first MIDI input device.
     The returned MidiInputConnection must be in scope for as long as input needs to be read.
 */
-pub fn open_midi_input(midi_tx: Sender<[u8; 3]>) -> Result<MidiInputConnection<()>, Error> {
+pub fn open_midi_input(midi_tx: MidiSender) -> Result<MidiInputConnection<()>, Error> {
     let mut midi_in = MidiInput::new("midir reading input")?;
     midi_in.ignore(Ignore::None);
 
