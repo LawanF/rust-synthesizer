@@ -18,7 +18,7 @@ const WINDOW_HEIGHT: u32 = 500;
 
 struct Model {
     stream: Stream,
-    midi_input: Option<MidiInputConnection<()>>,
+    midi_input_connection: Option<MidiInputConnection<()>>,
     midi_tx: MidiSender,
 }
 
@@ -43,18 +43,12 @@ fn model(app: &App) -> Model {
 
     let stream = match initialise_audio(midi_rx) {
         Ok(stream) => stream,
-        Err(_) => panic!("Can't initialise audio!"),
+        Err(_) => panic!("Can't initialise audio stream!"),
     };
 
     Model {
         stream,
-        midi_input: match open_midi_input(midi_tx.clone()) {
-            Ok(in_connection) => Some(in_connection),
-            Err(err) => {
-                println!("{}", err);
-                None
-            }
-        },
+        midi_input_connection: None,
         midi_tx,
     }
 }
@@ -74,6 +68,17 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
             return;
         },
         None => println!("teehee!"),
+    }
+    
+    // Request to open midi input.
+    if key == Key::Semicolon {
+        match open_midi_input(model.midi_tx.clone()) {
+            Ok(midi_input_connection) => {
+                println!("Found connection!");
+                model.midi_input_connection = Some(midi_input_connection);
+            },
+            Err(_) => println!("No connection found."),
+        }
     }
 }
 
