@@ -1,4 +1,4 @@
-use crate::note::Note;
+use super::note::Note;
 
 const DEFAULT_ATTACK: f64 = 0.01;
 const DEFAULT_DECAY: f64 = 0.5;
