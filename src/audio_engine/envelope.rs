@@ -1,8 +1,8 @@
-use crate::note::Note;
+use super::note::Note;
 
-const DEFAULT_ATTACK: f64 = 0.8;
-const DEFAULT_DECAY: f64 = 5.0;
-const DEFAULT_SUSTAIN: f64 = 0.0;
+const DEFAULT_ATTACK: f64 = 0.01;
+const DEFAULT_DECAY: f64 = 0.5;
+const DEFAULT_SUSTAIN: f64 = 1.0;
 const DEFAULT_RELEASE: f64 = 0.2;
 
 const LOWEST_AMPLITUDE: f64 = 0.0001; // When a signal is below or equal to this value, it is processed as no signal at all. 

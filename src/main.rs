@@ -1,22 +1,25 @@
-use keyboard::parse_key_as_note_input;
-use nannou::prelude::*;
-use nannou_audio;
+use std::sync::mpsc::channel;
 
-mod audio_processing;
-mod envelope;
+use cpal::Stream;
+use keyboard::parse_key_as_note_input;
+use midi::{open_midi_input, MidiReceiver, MidiSender, MIDI_OFF_VALUE, MIDI_ON_VALUE};
+use midir::MidiInputConnection;
+use nannou::prelude::*;
+
+mod audio_setup;
+mod audio_engine;
 mod keyboard;
 mod midi;
-mod note;
-mod oscillator;
 
-use audio_processing::AudioModel;
-use audio_processing::audio;
+use audio_setup::initialise_audio;
 
 const WINDOW_WIDTH: u32 = 500;
 const WINDOW_HEIGHT: u32 = 500;
 
 struct Model {
-    stream: nannou_audio::Stream<AudioModel>,
+    stream: Stream,
+    midi_input_connection: Option<MidiInputConnection<()>>,
+    midi_tx: MidiSender,
 }
 
 fn main() {
@@ -36,24 +39,24 @@ fn model(app: &App) -> Model {
                     .build()
                     .unwrap();
 
-    let audio_host = nannou_audio::Host::new();
+    let (midi_tx, midi_rx) = channel();
 
-    let audio_model = AudioModel::new();
-
-    let stream = audio_host.new_output_stream(audio_model)
-                        .render(audio)
-                        .build()
-                        .unwrap();
+    let stream = match initialise_audio(midi_rx) {
+        Ok(stream) => stream,
+        Err(_) => panic!("Can't initialise audio stream!"),
+    };
 
     Model {
-        stream
+        stream,
+        midi_input_connection: None,
+        midi_tx,
     }
 }
 
 fn view(_app: &App, _model: &Model, _frame: Frame) {
 }
 
-fn update(_app: &App, _model: &mut Model, _update: Update) {
+fn update(_app: &App, model: &mut Model, _update: Update) {
 }
 
 fn key_pressed(_app: &App, model: &mut Model, key: Key) {
@@ -61,12 +64,21 @@ fn key_pressed(_app: &App, model: &mut Model, key: Key) {
 
     match parse_key_as_note_input(key) {
         Some(index) => {
-            model.stream.send(move |audio_model| {
-                audio_model.press_note(index).unwrap();
-            }).unwrap();
+            model.midi_tx.send([MIDI_ON_VALUE, index, 0]).unwrap();
             return;
         },
         None => println!("teehee!"),
+    }
+    
+    // Request to open midi input.
+    if key == Key::Semicolon {
+        match open_midi_input(model.midi_tx.clone()) {
+            Ok(midi_input_connection) => {
+                println!("Found connection!");
+                model.midi_input_connection = Some(midi_input_connection);
+            },
+            Err(_) => println!("No connection found."),
+        }
     }
 }
 
@@ -75,9 +87,7 @@ fn key_released(_app: &App, model: &mut Model, key: Key) {
 
     match parse_key_as_note_input(key) {
         Some(index) => {
-            model.stream.send(move |audio_model| {
-                audio_model.release_note(index).unwrap();
-            }).unwrap();
+            model.midi_tx.send([MIDI_OFF_VALUE, index, 0]).unwrap();
             return;
         },
         None => println!("teehee!"),
