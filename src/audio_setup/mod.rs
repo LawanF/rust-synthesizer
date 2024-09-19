@@ -1,5 +1,5 @@
 use anyhow::Error;
-use cpal::{default_host, traits::{DeviceTrait, HostTrait}, Device, FromSample, OutputCallbackInfo, SampleFormat, SizedSample, Stream, StreamConfig, SupportedStreamConfig};
+use cpal::{default_host, traits::{DeviceTrait, HostTrait}, Device, FromSample, SampleFormat, SizedSample, Stream, StreamConfig, SupportedStreamConfig};
 
 use crate::{audio_engine::make_audio_callback, midi::MidiReceiver};
 

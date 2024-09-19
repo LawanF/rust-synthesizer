@@ -6,10 +6,10 @@ use midir::{Ignore, MidiInput, MidiInputConnection};
 pub const LENGTH_OF_MESSAGE_ARRAY: usize = 3;
 pub const MIDI_ON_VALUE: u8 = 144;
 pub const MIDI_OFF_VALUE: u8 = 128;
-pub const MIDI_BYTE_RATE: f64 = 3125.0;
 
-pub type MidiReceiver = Receiver<[u8; 3]>;
-pub type MidiSender = Sender<[u8; 3]>;
+
+pub type MidiReceiver = Receiver<[u8; LENGTH_OF_MESSAGE_ARRAY]>;
+pub type MidiSender = Sender<[u8; LENGTH_OF_MESSAGE_ARRAY]>;
 
 /*
     Opens first MIDI input device.
@@ -36,7 +36,7 @@ pub fn open_midi_input(midi_tx: MidiSender) -> Result<MidiInputConnection<()>, E
         move |stamp, message, _| {
             // Insert correct function here.
             println!("Stamp: {}, Message: {:?}", stamp, message);
-            midi_tx.send(message.try_into().unwrap()).unwrap();
+            midi_tx.send(message.try_into().unwrap()); // How do I handle the error here?
         }, 
         (),
     )?;

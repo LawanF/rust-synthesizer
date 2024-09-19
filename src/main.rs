@@ -2,7 +2,7 @@ use std::sync::mpsc::channel;
 
 use cpal::Stream;
 use keyboard::parse_key_as_note_input;
-use midi::{open_midi_input, MidiReceiver, MidiSender, MIDI_OFF_VALUE, MIDI_ON_VALUE};
+use midi::{open_midi_input, MidiSender, MIDI_OFF_VALUE, MIDI_ON_VALUE};
 use midir::MidiInputConnection;
 use nannou::prelude::*;
 
@@ -43,7 +43,10 @@ fn model(app: &App) -> Model {
 
     let stream = match initialise_audio(midi_rx) {
         Ok(stream) => stream,
-        Err(_) => panic!("Can't initialise audio stream!"),
+        Err(err) => {
+            println!("Error when initialising audio: {}", err);
+            panic!("Couldn't initialise stream!");
+        },
     };
 
     Model {
@@ -56,7 +59,7 @@ fn model(app: &App) -> Model {
 fn view(_app: &App, _model: &Model, _frame: Frame) {
 }
 
-fn update(_app: &App, model: &mut Model, _update: Update) {
+fn update(_app: &App, _model: &mut Model, _update: Update) {
 }
 
 fn key_pressed(_app: &App, model: &mut Model, key: Key) {
