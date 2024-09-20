@@ -11,6 +11,7 @@ Still in development.
 
 ## Building
 **Prerequisites:** Cargo
+
 For more information on how to install Cargo, see [this](https://doc.rust-lang.org/cargo/getting-started/installation.html) page in *The Cargo Book*.
 
 After installation, simply build using Cargo.
